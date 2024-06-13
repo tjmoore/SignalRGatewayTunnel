@@ -12,7 +12,8 @@ builder.Services
     .AddCors()
     .AddSingleton<TunnelHub>();
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddNewtonsoftJsonProtocol();
 
 var app = builder.Build();
 

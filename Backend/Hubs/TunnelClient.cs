@@ -16,6 +16,7 @@ namespace Backend.Hubs
             _connection = new HubConnectionBuilder()
                 .WithUrl("http://localhost:5105/gw-hub")
                 .WithAutomaticReconnect()
+                .AddNewtonsoftJsonProtocol()
                 .ConfigureLogging(logging =>
                 {
                     logging.AddConsole();
