@@ -1,5 +1,6 @@
 using Frontend.Hubs;
 using Frontend.Middleware;
+using MessagePack;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -13,7 +14,12 @@ builder.Services
     .AddSingleton<TunnelHub>();
 
 builder.Services.AddSignalR()
-    .AddNewtonsoftJsonProtocol();
+    .AddMessagePackProtocol(options =>
+    {
+        options.SerializerOptions = MessagePackSerializerOptions.Standard
+            .WithSecurity(MessagePackSecurity.UntrustedData);
+    });
+//    .AddNewtonsoftJsonProtocol();
 
 var app = builder.Build();
 

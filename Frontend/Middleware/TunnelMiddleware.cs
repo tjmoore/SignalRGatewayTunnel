@@ -1,10 +1,13 @@
 ﻿using Frontend.Hubs;
+using Microsoft.AspNetCore.Http.Extensions;
+using Model;
+using Serilog;
 
 namespace Frontend.Middleware
 {
     public class TunnelMiddleware(RequestDelegate nextMiddleware, TunnelHub tunnelHub)
     {
-        // Based on https://auth0.com/blog/building-a-reverse-proxy-in-dot-net-core/ using SignalR to tunnel instead of forwarding via HttpClient
+        // Loosely based on https://auth0.com/blog/building-a-reverse-proxy-in-dot-net-core/ using SignalR to tunnel instead of forwarding via HttpClient
 
         private readonly RequestDelegate _nextMiddleware = nextMiddleware;
         private readonly TunnelHub _tunnelHub = tunnelHub;
@@ -13,38 +16,53 @@ namespace Frontend.Middleware
         {
             if (!context.Request.Path.StartsWithSegments("/gw-hub"))
             {
-                var targetUri = BuildTargetUri(context.Request);
+                var tunnelRequestMessage = await CreateTunnelMessage(context);
 
-                if (targetUri != null)
+                Log.Debug("Sending request {@Message}", tunnelRequestMessage);
+
+                var responseMessage = await _tunnelHub.SendHttpRequestAsync(tunnelRequestMessage);
+
+                context.Response.StatusCode = (int)responseMessage.StatusCode;
+                CopyFromResponseHeaders(context, responseMessage);
+                if (responseMessage.Content != null)
                 {
-                    var targetRequestMessage = CreateTargetMessage(context, targetUri);
-
-                    using var responseMessage = await _tunnelHub.SendHttpRequestAsync(targetRequestMessage);
-
-                    context.Response.StatusCode = (int)responseMessage.StatusCode;
-                    CopyFromTargetResponseHeaders(context, responseMessage);
-                    await responseMessage.Content.CopyToAsync(context.Response.Body);
-
-                    return;
+                    using var ms = new MemoryStream(responseMessage.Content);
+                    await ms.CopyToAsync(context.Response.Body);
                 }
+
+                Log.Debug("Received response {@Message} - Content: {Content}", responseMessage, GetContentString(responseMessage.Content));
+
+                return;
             }
 
             await _nextMiddleware(context);
         }
 
-        private static HttpRequestMessage CreateTargetMessage(HttpContext context, Uri targetUri)
+        private static string GetContentString(byte[]? content, int maxLength = 80)
         {
-            var requestMessage = new HttpRequestMessage();
-            CopyFromOriginalRequestContentAndHeaders(context, requestMessage);
+            if (content == null)
+                return "";
 
-            requestMessage.RequestUri = targetUri;
-            requestMessage.Headers.Host = targetUri.Host;
-            requestMessage.Method = GetMethod(context.Request.Method);
+            string str = System.Text.Encoding.UTF8.GetString(content);
+
+            if (str.Length > maxLength)
+                return str[..maxLength];
+
+            return str;
+        }
+
+        private static async Task<RequestMessage> CreateTunnelMessage(HttpContext context)
+        {
+            var requestMessage = new RequestMessage();
+            await CopyFromOriginalRequestContentAndHeaders(context, requestMessage);
+
+            requestMessage.RequestUri = BuildTunnelUri(context.Request);
+            requestMessage.Method = context.Request.Method;
 
             return requestMessage;
         }
 
-        private static void CopyFromOriginalRequestContentAndHeaders(HttpContext context, HttpRequestMessage requestMessage)
+        private static async Task CopyFromOriginalRequestContentAndHeaders(HttpContext context, RequestMessage requestMessage)
         {
             var requestMethod = context.Request.Method;
 
@@ -53,45 +71,38 @@ namespace Frontend.Middleware
               !HttpMethods.IsDelete(requestMethod) &&
               !HttpMethods.IsTrace(requestMethod))
             {
-                var streamContent = new StreamContent(context.Request.Body);
-                requestMessage.Content = streamContent;
+                using var ms = new MemoryStream();
+                await context.Request.Body.CopyToAsync(ms);
+                requestMessage.Content = ms.ToArray();
             }
 
             foreach (var header in context.Request.Headers)
             {
-                requestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+                requestMessage.Headers.Add(new KeyValuePair<string, IEnumerable<string?>>(header.Key, [.. header.Value]));
             }
         }
 
-        private static void CopyFromTargetResponseHeaders(HttpContext context, HttpResponseMessage responseMessage)
+        private static void CopyFromResponseHeaders(HttpContext context, ResponseMessage responseMessage)
         {
             foreach (var header in responseMessage.Headers)
             {
                 context.Response.Headers[header.Key] = header.Value.ToArray();
             }
 
-            foreach (var header in responseMessage.Content.Headers)
-            {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
-            }
             context.Response.Headers.Remove("transfer-encoding");
         }
-        private static HttpMethod GetMethod(string method)
-        {
-            if (HttpMethods.IsDelete(method)) return HttpMethod.Delete;
-            if (HttpMethods.IsGet(method)) return HttpMethod.Get;
-            if (HttpMethods.IsHead(method)) return HttpMethod.Head;
-            if (HttpMethods.IsOptions(method)) return HttpMethod.Options;
-            if (HttpMethods.IsPost(method)) return HttpMethod.Post;
-            if (HttpMethods.IsPut(method)) return HttpMethod.Put;
-            if (HttpMethods.IsTrace(method)) return HttpMethod.Trace;
-            return new HttpMethod(method);
-        }
 
-        private static Uri? BuildTargetUri(HttpRequest request)
+        private static Uri BuildTunnelUri(HttpRequest request)
         {
-            // Client will retarget to local destination
-            return new Uri($"http://tunnel/{request.Path}");
+            // Change URL to a dummy host. The client will retarget to the destination as appropriate.
+            var uriBuilder = new UriBuilder(request.GetDisplayUrl())
+            {
+                Scheme = "http",
+                Host = "tunnel",
+                Port = 80
+            };
+
+            return uriBuilder.Uri;
         }
     }
 }
