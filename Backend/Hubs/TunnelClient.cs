@@ -87,7 +87,7 @@ namespace Backend.Hubs
 
                 var response = await CopyHttpResponse(httpResponse);
 
-                Log.Debug("Returning response {@Message} - Content: {Content}", response, GetContentString(response.Content));
+                Log.Debug("Returning response {@Message}", response);
 
                 return response;
             });
@@ -132,6 +132,11 @@ namespace Backend.Hubs
 
             foreach (var header in request.Headers)
             {
+                httpRequest.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+            }
+
+            foreach (var header in request.ContentHeaders)
+            {
                 httpRequest.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
             }
         }
@@ -164,7 +169,7 @@ namespace Backend.Hubs
 
             foreach (var header in httpResponse.Content.Headers)
             {
-                response.Headers.Add(new KeyValuePair<string, IEnumerable<string?>>(header.Key, [.. header.Value]));
+                response.ContentHeaders.Add(new KeyValuePair<string, IEnumerable<string?>>(header.Key, [.. header.Value]));
             }
         }
 

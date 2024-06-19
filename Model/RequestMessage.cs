@@ -16,5 +16,8 @@ namespace Model
 
         [Key(3)]
         public List<KeyValuePair<string, IEnumerable<string?>>> Headers { get; set; } = [];
+
+        [Key(4)]
+        public List<KeyValuePair<string, IEnumerable<string?>>> ContentHeaders { get; set; } = [];
     }
 }

@@ -30,7 +30,7 @@ namespace Frontend.Middleware
                     await ms.CopyToAsync(context.Response.Body);
                 }
 
-                Log.Debug("Received response {@Message} - Content: {Content}", responseMessage, GetContentString(responseMessage.Content));
+                Log.Debug("Received response {@Message}", responseMessage);
 
                 return;
             }
@@ -74,9 +74,14 @@ namespace Frontend.Middleware
                 using var ms = new MemoryStream();
                 await context.Request.Body.CopyToAsync(ms);
                 requestMessage.Content = ms.ToArray();
+
+                foreach (var header in context.Request.Headers.Where(kvp => IsContentHeader(kvp.Key)))
+                {
+                    requestMessage.ContentHeaders.Add(new KeyValuePair<string, IEnumerable<string?>>(header.Key, [.. header.Value]));
+                }
             }
 
-            foreach (var header in context.Request.Headers)
+            foreach (var header in context.Request.Headers.Where(kvp => !IsContentHeader(kvp.Key)))
             {
                 requestMessage.Headers.Add(new KeyValuePair<string, IEnumerable<string?>>(header.Key, [.. header.Value]));
             }
@@ -85,6 +90,11 @@ namespace Frontend.Middleware
         private static void CopyFromResponseHeaders(HttpContext context, ResponseMessage responseMessage)
         {
             foreach (var header in responseMessage.Headers)
+            {
+                context.Response.Headers[header.Key] = header.Value.ToArray();
+            }
+
+            foreach (var header in responseMessage.ContentHeaders)
             {
                 context.Response.Headers[header.Key] = header.Value.ToArray();
             }
@@ -103,6 +113,13 @@ namespace Frontend.Middleware
             };
 
             return uriBuilder.Uri;
+        }
+
+        private static bool IsContentHeader(string header)
+        {
+            return header.StartsWith("Content-") ||
+                header.Equals("Expires", StringComparison.OrdinalIgnoreCase) ||
+                header.Equals("Last-Modified", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
