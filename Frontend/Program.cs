@@ -14,6 +14,10 @@ builder.Services
     .AddSingleton<TunnelHub>();
 
 builder.Services.AddSignalR()
+    .AddHubOptions<TunnelHub>(options =>
+    {
+        options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+    })
     .AddMessagePackProtocol(options =>
     {
         options.SerializerOptions = MessagePackSerializerOptions.Standard
