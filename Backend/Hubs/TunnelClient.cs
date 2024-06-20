@@ -16,7 +16,7 @@ namespace Backend.Hubs
 
         private readonly Uri _destinationUrl;
 
-        private readonly Guid _clientId = Guid.NewGuid();
+        private readonly string _clientId = "my_backend_client";
 
         public TunnelClient(HttpClient httpClient, IConfiguration config)
         {
@@ -205,6 +205,8 @@ namespace Backend.Hubs
             else
                 Log.Information("Failed to register with hub");
         }
+
+        // Retry logic based on examples at https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client?view=aspnetcore-8.0&tabs=visual-studio
 
         private static async Task<bool> ConnectWithRetryAsync(HubConnection connection, CancellationToken token)
         {
