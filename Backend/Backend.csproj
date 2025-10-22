@@ -5,7 +5,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>246972d0-2477-4915-8d25-164c075b48f3</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Model\Model.csproj" />
+    <ProjectReference Include="..\SignalRGatewayTunnel.ServiceDefaults\SignalRGatewayTunnel.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
