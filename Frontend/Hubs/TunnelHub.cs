@@ -14,9 +14,15 @@ namespace Frontend.Hubs
     {
         private readonly ConcurrentDictionary<string, string> _connections = new();
 
-        public async Task<ResponseMessage> SendHttpRequestAsync(RequestMessage request)
+        public async Task<ResponseMessage?> SendHttpRequestAsync(RequestMessage request)
         {
             // TODO: target/routing. Currently just sends to first client
+
+            if (_connections.IsEmpty)
+            {
+                Log.Warning("No clients connected to handle request");
+                return null;
+            }
 
             string connectionId = _connections.FirstOrDefault().Value;
             Log.Debug("Sending to: {ConnectionId}", connectionId);

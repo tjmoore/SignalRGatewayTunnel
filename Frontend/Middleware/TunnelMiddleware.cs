@@ -14,13 +14,22 @@ namespace Frontend.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            if (!context.Request.Path.StartsWithSegments("/gw-hub"))
+            var path = context.Request.Path;
+
+            if (!path.StartsWithSegments("/gw-hub") &&
+                !path.StartsWithSegments("/health") &&
+                !path.StartsWithSegments("/alive"))
             {
                 var tunnelRequestMessage = await CreateTunnelMessage(context);
 
                 Log.Debug("Sending request {@Message}", tunnelRequestMessage);
 
                 var responseMessage = await _tunnelHub.SendHttpRequestAsync(tunnelRequestMessage);
+                if (responseMessage == null)
+                {
+                    context.Response.StatusCode = StatusCodes.Status502BadGateway;
+                    return;
+                }
 
                 context.Response.StatusCode = (int)responseMessage.StatusCode;
                 CopyFromResponseHeaders(context, responseMessage);

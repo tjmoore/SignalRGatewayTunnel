@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "Model\Model.csproj", "{30991CA8-1085-461D-A053-D2696AB01C11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalRGatewayTunnel.AppHost", "SignalRGatewayTunnel.AppHost\SignalRGatewayTunnel.AppHost.csproj", "{2E96650E-0FF9-44A0-9AF3-43EB9E975A50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalRGatewayTunnel.ServiceDefaults", "SignalRGatewayTunnel.ServiceDefaults\SignalRGatewayTunnel.ServiceDefaults.csproj", "{9C56300F-0625-D4A8-977B-A6EC6620CB70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{30991CA8-1085-461D-A053-D2696AB01C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30991CA8-1085-461D-A053-D2696AB01C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30991CA8-1085-461D-A053-D2696AB01C11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E96650E-0FF9-44A0-9AF3-43EB9E975A50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E96650E-0FF9-44A0-9AF3-43EB9E975A50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E96650E-0FF9-44A0-9AF3-43EB9E975A50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E96650E-0FF9-44A0-9AF3-43EB9E975A50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C56300F-0625-D4A8-977B-A6EC6620CB70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C56300F-0625-D4A8-977B-A6EC6620CB70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C56300F-0625-D4A8-977B-A6EC6620CB70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C56300F-0625-D4A8-977B-A6EC6620CB70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
