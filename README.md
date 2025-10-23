@@ -45,26 +45,32 @@ Loosely based Frontend middleware on https://auth0.com/blog/building-a-reverse-p
 
 ## Dependencies
 
-.NET 8 minimum
+.NET 9 (should run on .NET 8 also, but targets 9 in the example projects)
 
 MessagePack for fast binary package transport https://github.com/MessagePack-CSharp/MessagePack-CSharp
 
 ## Running development mode
 
 #### Visual Studio
-Set SignalRGatewayTunnel.AppHost as start up project and run (F5)
+Set `AppHost` as start up project and run (F5)
 
 #### Visual Studio Code
-From Solution Explorer, right click SignalRGatewayTunnel.AppHost and select Debug -> Start New Instance
+From Solution Explorer, right click `AppHost` and select Debug -> Start New Instance
 
 #### Command Line
-Run `dotnet run --project SignalRGatewayTunnel.AppHost`
+Run `dotnet run --project AppHost`
 
 You may have to select the dashboard link shown in the console output to launch in the browser
 
 This will run the .NET Aspire host, launching the components and dashboard in the browser showing the service status.
 
 If the Backend Gateway has connected to the frontend successfully, browse to the Frontend Proxy URL (http://localhost:5105 or https://localhost:7175).
-This will send the HTTP request in the browser via the gateway to the destination endpoint at http://localhost:9000 and return the response or timeout if destination is not running.
+This will send the HTTP request in the browser via the gateway to the destination endpoint at http://localhost:5174 and return the response or timeout if destination is not running.
+
+## Configuration
+
+`launchSettings.json` in each project defines config for ports etc to launch each app. `AppHost` defines the development environment.
+
+`Backend\appsettings.*.json` defines the destination endpoint to forward inbound requests to, and the tunnel endpoint on the frontend to register with.
 
 

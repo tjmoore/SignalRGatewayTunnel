@@ -9,4 +9,6 @@ builder.AddProject<Projects.Backend>("backend")
     .WithReference(frontend)
     .WaitFor(frontend);
 
+builder.AddProject<Projects.Destination>("destination");
+
 builder.Build().Run();
