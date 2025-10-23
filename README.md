@@ -12,7 +12,7 @@ This is a rough proof of concept of a Gateway tunnel using SignalR
 
 This example consists of the following components:
 
-<img src="Design/SignalRGateway Components.svg" alt="Component Structure" width="600">
+<img src="Design/SignalRGateway Components.svg" alt="Component Structure" width="700">
 
 - External Client (browser or other HTTP client)
 - Frontend Proxy (cloud hosted for example)
@@ -26,7 +26,7 @@ This example consists of the following components:
 - When a request is received by the Frontend Proxy, it packages the request into a message and sends it to the Backend Gateway via SignalR
 - Backend Gateway then unpacks the message, makes the HTTP request to the Destination Backend Service, and sends the response back to the Frontend Proxy, which then returns it to the original client
 
-<img src="Design/SignalRGateway Sequence.svg" alt="UML Sequence Diagram" width="600">
+<img src="Design/SignalRGateway Sequence.svg" alt="UML Sequence Diagram" width="900">
 
 ## Use Case
 
