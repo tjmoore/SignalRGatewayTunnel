@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="AppHost/AppHost.csproj" />
+  <Project Path="Backend/Backend.csproj" />
+  <Project Path="Destination/Destination.csproj" Id="212d8793-aff6-44e6-8437-cec84d5a654e" />
+  <Project Path="Frontend/Frontend.csproj" />
+  <Project Path="Model/Model.csproj" />
+  <Project Path="ServiceDefaults/ServiceDefaults.csproj" />
+</Solution>

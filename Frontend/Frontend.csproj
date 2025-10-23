@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Model\Model.csproj" />
-    <ProjectReference Include="..\SignalRGatewayTunnel.ServiceDefaults\SignalRGatewayTunnel.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
