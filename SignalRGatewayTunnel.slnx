@@ -9,4 +9,5 @@
   <Project Path="Frontend/Frontend.csproj" />
   <Project Path="Model/Model.csproj" />
   <Project Path="ServiceDefaults/ServiceDefaults.csproj" />
+  <Project Path="Tests/Tests.csproj" Id="bce23937-a664-4e4e-8867-7911c8ddc53e" />
 </Solution>
