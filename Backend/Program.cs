@@ -10,7 +10,7 @@ Log.Logger = new LoggerConfiguration()
 // Backend builds a web app for management use. Optional.
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
+builder.AddServiceDefaults(withResilience:false);
 
 builder.Services.AddSignalR()
     .AddMessagePackProtocol(options =>
@@ -20,9 +20,20 @@ builder.Services.AddSignalR()
     });
 //.AddNewtonsoftJsonProtocol();
 
-builder.Services
-    .AddHostedService<TunnelClient>()
-    .AddHttpClient<TunnelClient>();
+builder.Services.AddHttpClient<RequestForwarder>(static client =>
+    {
+        // Service Discovery URL for the destination service
+        client.BaseAddress = new("https+http://destination");
+    });
+
+builder.Services.AddHostedService(sp =>
+    // Factory construct TunnelClient passing in the Service Discovery URL as
+    // SignalR hub doesn't support setting HttpClient
+    new TunnelClient(
+        sp.GetRequiredService<IHttpMessageHandlerFactory>(),
+        sp.GetRequiredService<RequestForwarder>(),
+        "https+http://frontend/gw-hub")); // Defaults to long polling transport
+        // "wss+ws://frontend/gw-hub")); // Name resolution doesn't work with this, but is needed for websockets
 
 var app = builder.Build();
 

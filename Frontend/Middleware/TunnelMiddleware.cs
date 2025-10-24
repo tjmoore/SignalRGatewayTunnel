@@ -47,19 +47,6 @@ namespace Frontend.Middleware
             await _nextMiddleware(context);
         }
 
-        private static string GetContentString(byte[]? content, int maxLength = 80)
-        {
-            if (content == null)
-                return "";
-
-            string str = System.Text.Encoding.UTF8.GetString(content);
-
-            if (str.Length > maxLength)
-                return str[..maxLength];
-
-            return str;
-        }
-
         private static async Task<RequestMessage> CreateTunnelMessage(HttpContext context)
         {
             var requestMessage = new RequestMessage();
@@ -76,9 +63,9 @@ namespace Frontend.Middleware
             var requestMethod = context.Request.Method;
 
             if (!HttpMethods.IsGet(requestMethod) &&
-              !HttpMethods.IsHead(requestMethod) &&
-              !HttpMethods.IsDelete(requestMethod) &&
-              !HttpMethods.IsTrace(requestMethod))
+                !HttpMethods.IsHead(requestMethod) &&
+                !HttpMethods.IsDelete(requestMethod) &&
+                !HttpMethods.IsTrace(requestMethod))
             {
                 using var ms = new MemoryStream();
                 await context.Request.Body.CopyToAsync(ms);
