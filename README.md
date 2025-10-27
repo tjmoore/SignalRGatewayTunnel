@@ -6,6 +6,11 @@ Sample SignalR based Gateway tunnel
 
 This is a rough proof of concept of a Gateway tunnel using SignalR
 
+In concept it's similar to this solution using Yarp as a tunnelling proxy with web sockets, however had difficulty getting
+it to work and ended up with a solution without Yarp. https://github.com/davidfowl/YarpTunnelDemo.
+Possibly it was just an environment/configuration issue. This solution
+uses Aspire which makes it easier to create the environment and debug.
+
 **This shouldn't be relied upon as production ready, nor expect to be stable or secure**
 
 ## Components
@@ -26,7 +31,7 @@ This example consists of the following components:
 - When a request is received by the Frontend Proxy, it packages the request into a message and sends it to the Backend Gateway via SignalR
 - Backend Gateway then unpacks the message, makes the HTTP request to the Destination Backend Service, and sends the response back to the Frontend Proxy, which then returns it to the original client
 
-<img src="Design/SignalRGateway Sequence.svg" alt="UML Sequence Diagram" width="900">
+<img src="Design/SignalRGateway Sequence.svg" alt="UML Sequence Diagram" width="1000">
 
 ## Use Case
 
@@ -86,3 +91,5 @@ This will send the HTTP request in the browser via the gateway to the destinatio
 General SignalR and retry logic https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client?view=aspnetcore-8.0&tabs=visual-studio
 
 Loosely based Frontend middleware on https://auth0.com/blog/building-a-reverse-proxy-in-dot-net-core/ but using SignalR instead
+
+Also similar to https://github.com/davidfowl/YarpTunnelDemo
