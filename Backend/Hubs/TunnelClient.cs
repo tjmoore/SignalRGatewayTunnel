@@ -22,6 +22,8 @@ namespace Backend.Hubs
         {
             _requestForwarder = requestForwarder;
 
+            // TODO: wss+ws support with service discovery. Currently only http+https is supported.
+            // string tunnelUrl = "wss+ws://frontend/gw-hub";
             string tunnelUrl = "https+http://frontend/gw-hub";
 
             Log.Debug("TunnelClient initialized with tunnel URL {TunnelUrl}", tunnelUrl);

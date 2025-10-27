@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Backend.Hubs
 {
@@ -18,6 +19,10 @@ namespace Backend.Hubs
             return builder.WithUrl(url, options =>
             {
                 options.HttpMessageHandlerFactory = _ => clientFactory.CreateHandler();
+                options.Transports = HttpTransportType.LongPolling;
+
+                // WebSockets transport with Service Discovery is not yet supported
+                // options.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
             });
         }
     }
