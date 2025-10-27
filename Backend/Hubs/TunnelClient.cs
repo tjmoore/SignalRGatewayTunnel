@@ -1,9 +1,7 @@
 ﻿using MessagePack;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.ServiceDiscovery;
 using Model;
 using Serilog;
-using System.Threading;
 
 namespace Backend.Hubs
 {
