@@ -1,4 +1,5 @@
-﻿using Model;
+﻿using Microsoft.Extensions.ServiceDiscovery;
+using Model;
 using Serilog;
 
 namespace Backend.Hubs
@@ -6,17 +7,19 @@ namespace Backend.Hubs
     public class RequestForwarder
     {
         private readonly HttpClient _httpClient;
+        private readonly ServiceEndpointResolver _endPointResolver;
 
-        public RequestForwarder(HttpClient httpClient)
+        private readonly string _destinationUrl;
+
+        private string? _resolvedEndpoint = null;
+
+        public RequestForwarder(HttpClient httpClient, ServiceEndpointResolver endPointResolver)
         {
             _httpClient = httpClient;
+            _endPointResolver = endPointResolver;
+            _destinationUrl = "https+http://destination";
 
-            // Destination URL is configured in HttpClient base address
-            if (httpClient.BaseAddress == null)
-            {
-                throw new ArgumentException("HttpClient must have a BaseAddress configured for the destination URL.");
-            }
-            Log.Debug("RequestForwarder initialized with destination URL {DestinationUrl}", httpClient.BaseAddress);
+            Log.Debug("RequestForwarder initialized with destination URL {DestinationUrl}", _destinationUrl);
         }
 
         public async Task<ResponseMessage> ForwardRequest(RequestMessage request, CancellationToken token = default)
@@ -25,7 +28,9 @@ namespace Backend.Hubs
 
             using var httpRequest = new HttpRequestMessage();
 
-            CopyToHttpRequest(request, httpRequest);
+            string resolvedEndpoint = await GetResolvedEndpoint(token);
+
+            CopyToHttpRequest(request, resolvedEndpoint, httpRequest);
 
             Log.Debug("Sending to {Url}", httpRequest.RequestUri);
 
@@ -38,12 +43,14 @@ namespace Backend.Hubs
             return response;
         }
 
-        private static void CopyToHttpRequest(RequestMessage request, HttpRequestMessage httpRequest)
+        private static void CopyToHttpRequest(RequestMessage request, string resolvedEndpoint, HttpRequestMessage httpRequest)
         {
             CopyContentAndHeadersToHttpRequest(request, httpRequest);
 
+            var uri = request.RequestUri ?? new Uri("");
+
             httpRequest.Method = GetMethod(request.Method);
-            httpRequest.RequestUri = BuildTargetUri(request);
+            httpRequest.RequestUri = BuildTargetUri(uri, resolvedEndpoint);
             httpRequest.Headers.Host = httpRequest.RequestUri.Host;
         }
 
@@ -117,11 +124,26 @@ namespace Backend.Hubs
             return new HttpMethod(method);
         }
 
-        private static Uri BuildTargetUri(RequestMessage request)
+        private static Uri BuildTargetUri(Uri requestUri, string resolvedEndpoint)
         {
-            // Set the relative path for target as the destination base is set in the HttpClient
-            return request.RequestUri == null ?
-                new Uri("/", UriKind.Relative) : new Uri(request.RequestUri.PathAndQuery, UriKind.Relative);
+            return requestUri == null ?
+                new Uri(resolvedEndpoint) : new Uri($"{resolvedEndpoint}{requestUri.PathAndQuery}");
+        }
+
+        private async Task<string> GetResolvedEndpoint(CancellationToken cancellationToken)
+        {
+            if (_resolvedEndpoint == null)
+            {
+                var source = await _endPointResolver.GetEndpointsAsync(_destinationUrl, cancellationToken);
+                _resolvedEndpoint = (source.Endpoints.Count > 0) ? source.Endpoints[0].ToString() : null;
+                if (string.IsNullOrEmpty(_resolvedEndpoint))
+                {
+                    throw new ApplicationException("Could not resolve destination service endpoint");
+                }
+
+                _resolvedEndpoint = _resolvedEndpoint.TrimEnd('/');
+            }
+            return _resolvedEndpoint;
         }
     }
 }

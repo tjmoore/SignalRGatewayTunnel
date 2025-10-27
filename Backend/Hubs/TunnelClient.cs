@@ -1,7 +1,9 @@
 ﻿using MessagePack;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.ServiceDiscovery;
 using Model;
 using Serilog;
+using System.Threading;
 
 namespace Backend.Hubs
 {
@@ -16,14 +18,11 @@ namespace Backend.Hubs
 
         private readonly string _clientId = "my_backend_client";
 
-        public TunnelClient(IHttpMessageHandlerFactory httpClientFactory, RequestForwarder requestForwarder, string tunnelUrl)
+        public TunnelClient(IHttpMessageHandlerFactory httpClientFactory, RequestForwarder requestForwarder)
         {
             _requestForwarder = requestForwarder;
 
-            if (string.IsNullOrEmpty(tunnelUrl))
-            {
-                throw new ArgumentException("Tunnel URL must be provided", nameof(tunnelUrl));
-            }
+            string tunnelUrl = "https+http://frontend/gw-hub";
 
             Log.Debug("TunnelClient initialized with tunnel URL {TunnelUrl}", tunnelUrl);
 

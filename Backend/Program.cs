@@ -10,6 +10,8 @@ Log.Logger = new LoggerConfiguration()
 // Backend builds a web app for management use. Optional.
 var builder = WebApplication.CreateBuilder(args);
 
+// Turn off resilience in service default as it causes issues with long SignalR connections
+// TODO: investigate further
 builder.AddServiceDefaults(withResilience:false);
 
 builder.Services.AddSignalR()
@@ -20,26 +22,18 @@ builder.Services.AddSignalR()
     });
 //.AddNewtonsoftJsonProtocol();
 
-builder.Services.AddHttpClient<RequestForwarder>(static client =>
-    {
-        // Service Discovery URL for the destination service
-        client.BaseAddress = new("https+http://destination");
-    });
+// Adding HttpClient also creates a default IHttpMessageHandlerFactory instance which is needed
+// for SignalR hub connection with service discovery in TunnelClient
+builder.Services.AddHttpClient<RequestForwarder>();
+builder.Services.AddHttpClient<TunnelClient>();
 
-builder.Services.AddHostedService(sp =>
-    // Factory construct TunnelClient passing in the Service Discovery URL as
-    // SignalR hub doesn't support setting HttpClient
-    new TunnelClient(
-        sp.GetRequiredService<IHttpMessageHandlerFactory>(),
-        sp.GetRequiredService<RequestForwarder>(),
-        "https+http://frontend/gw-hub")); // Defaults to long polling transport
-        // "wss+ws://frontend/gw-hub")); // Name resolution doesn't work with this, but is needed for websockets
+builder.Services.AddHostedService<TunnelClient>();
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// Dummy endpoint for backend gateway. Normally the gatewat us forwarding to a destination service but
+// Dummy endpoint for backend gateway. Normally the gateway is forwarding to a destination service but
 // it might also have its own endpoints for management etc.
 app.MapGet("/", () => "This is the gateway backend");
 
