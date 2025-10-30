@@ -24,10 +24,12 @@ namespace Backend.Hubs
 
                 options.WebSocketFactory = async (context, cancellationToken) =>
                 {
-                    var httpUri = new Uri(await GetResolvedEndpoint(context.Uri.ToString(), endPointResolver, cancellationToken));
-                    var wsUri = new UriBuilder(httpUri)
+                    var baseUri = new Uri(await GetResolvedEndpoint(context.Uri.ToString(), endPointResolver, cancellationToken));
+                    var wsUri = new UriBuilder(baseUri)
                     {
-                        Scheme = httpUri.Scheme == Uri.UriSchemeHttps ? "wss" : "ws"
+                        Scheme = baseUri.Scheme == Uri.UriSchemeHttps ? "wss" : "ws",
+                        Path = context.Uri.AbsolutePath,
+                        Query = context.Uri.Query
                     };
 
                     var webSocketClient = new System.Net.WebSockets.ClientWebSocket();
@@ -43,10 +45,10 @@ namespace Backend.Hubs
             string? resolvedEndpoint = (source.Endpoints.Count > 0) ? source.Endpoints[0].ToString() : null;
             if (string.IsNullOrEmpty(resolvedEndpoint))
             {
-                throw new ApplicationException("Could not resolve destination service endpoint");
+                throw new ApplicationException("Could not resolve service endpoint");
             }
 
-            return resolvedEndpoint.TrimEnd('/');
+            return resolvedEndpoint;
         }
 
     }

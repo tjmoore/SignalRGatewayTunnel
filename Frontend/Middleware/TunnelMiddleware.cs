@@ -21,8 +21,7 @@ namespace Frontend.Middleware
 
             if (path.StartsWithSegments("/gw-hub") ||
                 path.StartsWithSegments("/health") ||
-                path.StartsWithSegments("/alive") ||
-                headers.ContainsKey("Upgrade"))
+                path.StartsWithSegments("/alive"))
             {
                 await _nextMiddleware(context);
                 return;
