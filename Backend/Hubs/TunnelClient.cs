@@ -1,5 +1,6 @@
 ﻿using MessagePack;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.ServiceDiscovery;
 using Model;
 using Serilog;
 
@@ -16,12 +17,10 @@ namespace Backend.Hubs
 
         private readonly string _clientId = "my_backend_client";
 
-        public TunnelClient(IHttpMessageHandlerFactory httpClientFactory, RequestForwarder requestForwarder)
+        public TunnelClient(IHttpMessageHandlerFactory httpClientFactory, RequestForwarder requestForwarder, ServiceEndpointResolver endPointResolver)
         {
             _requestForwarder = requestForwarder;
 
-            // TODO: wss+ws support with service discovery. Currently only http+https is supported.
-            // string tunnelUrl = "wss+ws://frontend/gw-hub";
             string tunnelUrl = "https+http://frontend/gw-hub";
 
             Log.Debug("TunnelClient initialized with tunnel URL {TunnelUrl}", tunnelUrl);
@@ -30,7 +29,7 @@ namespace Backend.Hubs
             // can use Service Discovery as it doesn't support it by default
 
             _connection = new HubConnectionBuilder()
-                .WithUrl(tunnelUrl, httpClientFactory)
+                .WithUrl(tunnelUrl, httpClientFactory, endPointResolver)
                 .WithAutomaticReconnect()
                 .AddMessagePackProtocol(options =>
                 {

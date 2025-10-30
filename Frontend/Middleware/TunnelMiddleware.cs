@@ -14,37 +14,44 @@ namespace Frontend.Middleware
 
         public async Task Invoke(HttpContext context)
         {
+            Log.Debug("Received request {Method} {Url}", context.Request.Method, context.Request.GetDisplayUrl());
+
             var path = context.Request.Path;
+            var headers = context.Request.Headers;
 
-            if (!path.StartsWithSegments("/gw-hub") &&
-                !path.StartsWithSegments("/health") &&
-                !path.StartsWithSegments("/alive"))
+            if (path.StartsWithSegments("/gw-hub") ||
+                path.StartsWithSegments("/health") ||
+                path.StartsWithSegments("/alive") ||
+                headers.ContainsKey("Upgrade"))
             {
-                var tunnelRequestMessage = await CreateTunnelMessage(context);
-
-                Log.Debug("Sending request {@Message}", tunnelRequestMessage);
-
-                var responseMessage = await _tunnelHub.SendHttpRequestAsync(tunnelRequestMessage);
-                if (responseMessage == null)
-                {
-                    context.Response.StatusCode = StatusCodes.Status502BadGateway;
-                    return;
-                }
-
-                context.Response.StatusCode = (int)responseMessage.StatusCode;
-                CopyFromResponseHeaders(context, responseMessage);
-                if (responseMessage.Content != null)
-                {
-                    using var ms = new MemoryStream(responseMessage.Content);
-                    await ms.CopyToAsync(context.Response.Body);
-                }
-
-                Log.Debug("Received response {@Message}", responseMessage);
-
+                await _nextMiddleware(context);
                 return;
             }
 
-            await _nextMiddleware(context);
+            // Assume all other requests are to be tunneled
+
+            var tunnelRequestMessage = await CreateTunnelMessage(context);
+
+            Log.Debug("Sending request {@Message}", tunnelRequestMessage);
+
+            var responseMessage = await _tunnelHub.SendHttpRequestAsync(tunnelRequestMessage);
+            if (responseMessage == null)
+            {
+                context.Response.StatusCode = StatusCodes.Status502BadGateway;
+                return;
+            }
+
+            context.Response.StatusCode = (int)responseMessage.StatusCode;
+            CopyFromResponseHeaders(context, responseMessage);
+            if (responseMessage.Content != null)
+            {
+                using var ms = new MemoryStream(responseMessage.Content);
+                await ms.CopyToAsync(context.Response.Body);
+            }
+
+            Log.Debug("Received response {@Message}", responseMessage);
+
+            return;
         }
 
         private static async Task<RequestMessage> CreateTunnelMessage(HttpContext context)

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.Connections;
-using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.ServiceDiscovery;
 
 namespace Backend.Hubs
 {
@@ -12,18 +12,42 @@ namespace Backend.Hubs
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="url"></param>
-        /// <param name="clientFactory"></param>
+        /// <param name="messageHandlerFactory"></param>
         /// <returns></returns>
-        public static IHubConnectionBuilder WithUrl(this IHubConnectionBuilder builder, string url, IHttpMessageHandlerFactory clientFactory)
+        public static IHubConnectionBuilder WithUrl(
+            this IHubConnectionBuilder builder, string url, IHttpMessageHandlerFactory messageHandlerFactory,
+            ServiceEndpointResolver endPointResolver)
         {
             return builder.WithUrl(url, options =>
             {
-                options.HttpMessageHandlerFactory = _ => clientFactory.CreateHandler();
-                options.Transports = HttpTransportType.LongPolling;
+                options.HttpMessageHandlerFactory = _ => messageHandlerFactory.CreateHandler();
 
-                // WebSockets transport with Service Discovery is not yet supported
-                // options.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
+                options.WebSocketFactory = async (context, cancellationToken) =>
+                {
+                    var httpUri = new Uri(await GetResolvedEndpoint(context.Uri.ToString(), endPointResolver, cancellationToken));
+                    var wsUri = new UriBuilder(httpUri)
+                    {
+                        Scheme = httpUri.Scheme == Uri.UriSchemeHttps ? "wss" : "ws"
+                    };
+
+                    var webSocketClient = new System.Net.WebSockets.ClientWebSocket();
+                    await webSocketClient.ConnectAsync(wsUri.Uri, cancellationToken);
+                    return webSocketClient;
+                };
             });
         }
+
+        private static async Task<string> GetResolvedEndpoint(string serviceUrl, ServiceEndpointResolver endpointResolver, CancellationToken cancellationToken)
+        {
+            var source = await endpointResolver.GetEndpointsAsync(serviceUrl, cancellationToken);
+            string? resolvedEndpoint = (source.Endpoints.Count > 0) ? source.Endpoints[0].ToString() : null;
+            if (string.IsNullOrEmpty(resolvedEndpoint))
+            {
+                throw new ApplicationException("Could not resolve destination service endpoint");
+            }
+
+            return resolvedEndpoint.TrimEnd('/');
+        }
+
     }
 }
