@@ -31,7 +31,7 @@ This example consists of the following components:
 - When a request is received by the Frontend Proxy, it packages the request into a message and sends it to the Backend Gateway via SignalR
 - Backend Gateway then unpacks the message, makes the HTTP request to the Destination Backend Service, and sends the response back to the Frontend Proxy, which then returns it to the original client
 
-<img src="Design/SignalRGateway Sequence.svg" alt="UML Sequence Diagram" width="1000">
+<img src="Design/SignalRGateway Sequence.svg" alt="UML Sequence Diagram" width="800">
 
 ## Use Case
 
