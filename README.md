@@ -56,7 +56,7 @@ The example here currently only routes to the first client that registers.
 
 ## Component technologies
 
-* .NET 9 (should run on .NET 8 also, but targets 9 in the example projects)
+* .NET 10 (likely will work with .NET 8+)
 * SignalR
 * MessagePack for fast binary package transport https://github.com/MessagePack-CSharp/MessagePack-CSharp
 * Aspire .NET to orchestrate the environment and aid development and debug
@@ -67,16 +67,26 @@ The example here currently only routes to the first client that registers.
 Set `AppHost` as start up project and run (F5)
 
 #### Visual Studio Code
-From Solution Explorer, right click `AppHost` and select Debug -> Start New Instance
+
+Install Aspire CLI - https://learn.microsoft.com/en-us/dotnet/aspire/cli/install
+
+Install Aspire Extension - https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/aspire-vscode-extension
+
+Run with F5 or Run -> Start Debugging
+
+Alternatively without the Aspire CLI / Extension, from Solution Explorer right click `AppHost` and select Debug -> Start New Instance
+
 
 #### Command Line
-Run `dotnet run --project AppHost`
+Install Aspire CLI - https://learn.microsoft.com/en-us/dotnet/aspire/cli/install
 
-You may have to select the dashboard link shown in the console output to launch in the browser
+Run `aspire run`
+
+Alternatively without Aspire CLI, run `dotnet run --project AppHost`
 
 This will run the .NET Aspire host, launching the components and dashboard in the browser showing the service status.
 
-If the Backend Gateway has connected to the frontend successfully, browse to the Frontend Proxy URL (http://localhost:5105 or https://localhost:7175).
+If the Backend Gateway has connected to the frontend successfully, browse to the Frontend Proxy URL (e.g. http://localhost:5105 or https://localhost:7175).
 This will send the HTTP request in the browser via the gateway to the destination endpoint at http://localhost:5174 and return the response or timeout if destination is not running.
 
 ## Configuration
